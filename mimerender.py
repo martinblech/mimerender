@@ -2,9 +2,10 @@
 Decorator for RESTful resource variant selection in web.py.
 """
 
-__version__ = '0.1-dev'
-__author__  = 'Martin Blech <mblech@bmat.com>'
-__license__ = 'MIT'
+__version__   = '0.1-dev'
+__author__    = 'Martin Blech <mblech@bmat.com>'
+__license__   = 'MIT'
+__copyright__ = '2009 Barcelona Music & Audio Technologies'
 
 import web
 from decorator import decorator
