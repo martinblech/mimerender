@@ -2,7 +2,7 @@
 Decorator for RESTful resource variant selection in web.py.
 """
 
-__version__   = '0.1-dev'
+__version__   = '0.1'
 __author__    = 'Martin Blech <mblech@bmat.com>'
 __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
@@ -120,3 +120,11 @@ def represent(default=None, override_arg_idx=None, override_input_key=None, **re
         return wrapper(target)
     
     return wrap
+
+if __name__ == "__main__":
+    import unittest
+
+    class TestMimeRender(unittest.TestCase):
+        pass
+    
+    unittest.main()
