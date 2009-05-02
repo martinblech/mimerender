@@ -46,10 +46,10 @@ global_default = None
 global_override_arg_idx = None
 global_override_input_key = None
 
-def represent(default=None, override_arg_idx=None, override_input_key=None, **renderers):
+def mimerender(default=None, override_arg_idx=None, override_input_key=None, **renderers):
     """
     Usage:
-        @represent(default='xml', override_arg_idx=-1, override_input_key='format', , <renderers>)
+        @mimerender(default='xml', override_arg_idx=-1, override_input_key='format', , <renderers>)
         GET(self, ...) (or POST, etc.)
         
     The decorated function must return a dict with the objects necessary to
@@ -61,7 +61,7 @@ def represent(default=None, override_arg_idx=None, override_input_key=None, **re
     
     Example:
     class greet:
-        @mimerender.represent(
+        @mimerender.mimerender(
             default = 'xml',
             override_arg_idx = -1,
             override_input_key = 'format',
