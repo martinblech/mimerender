@@ -18,7 +18,7 @@ XHTML = 'xhtml'
 HTML  = 'html'
 TXT   = 'txt'
 
-MIME_TYPES = {
+_MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
     JSON:  ('application/json',),
     YAML:  ('application/x-yaml', 'text/yaml',),
@@ -27,11 +27,25 @@ MIME_TYPES = {
     TXT:   ('text/plain',),
 }
 
+def register_mime(shortname, mime_types):
+    """
+    Register a new mime type.
+    Usage example:
+        mimerender.register_mime('svg', ('application/x-svg', 'application/svg+xml',))
+    After this you can do:
+        @mimerender.mimerender(svg=render_svg)
+        def GET(...
+            ...
+    """
+    if shortname in _MIME_TYPES:
+        raise MimeRenderException('"%s" has already been registered'%shortname)
+    _MIME_TYPES[shortname] = mime_types
+
 class MimeRenderException(Exception): pass
 
 def _get_mime_types(shortname):
     try:
-        return MIME_TYPES[shortname]
+        return _MIME_TYPES[shortname]
     except KeyError:
         raise MimeRenderException('No known mime types for "%s"'%shortname)
 
