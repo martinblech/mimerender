@@ -2,7 +2,7 @@
 Decorator for RESTful resource variant selection in web.py.
 """
 
-__version__   = '0.1'
+__version__   = '0.2'
 __author__    = 'Martin Blech <mblech@bmat.com>'
 __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
@@ -16,6 +16,14 @@ YAML  = 'yaml'
 XHTML = 'xhtml'
 HTML  = 'html'
 TXT   = 'txt'
+CSV   = 'csv'
+RSS   = 'rss'
+RDF   = 'rdf'
+ATOM  = 'atom'
+M3U   = 'm3u'
+PLS   = 'pls'
+XSPF  = 'xspf'
+ICAL  = 'ical'
 
 _MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
@@ -24,6 +32,14 @@ _MIME_TYPES = {
     XHTML: ('application/xhtml+xml',),
     HTML:  ('text/html',),
     TXT:   ('text/plain',),
+    CSV:   ('text/csv',),
+    RSS:   ('application/rss+xml',),
+    RDF:   ('application/rdf+xml',),
+    ATOM:  ('application/atom+xml',),
+    M3U:   ('audio/mpegurl', 'audio/x-mpegurl',),
+    PLS:   ('audio/x-scpls',),
+    XSPF:  ('application/xspf+xml',),
+    ICAL:  ('text/calendar',),
 }
 
 def register_mime(shortname, mime_types):
