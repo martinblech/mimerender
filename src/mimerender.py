@@ -20,6 +20,7 @@ XHTML = 'xhtml'
 HTML  = 'html'
 TXT   = 'txt'
 CSV   = 'csv'
+TSV   = 'tsv'
 RSS   = 'rss'
 RDF   = 'rdf'
 ATOM  = 'atom'
@@ -36,6 +37,7 @@ _MIME_TYPES = {
     HTML:  ('text/html',),
     TXT:   ('text/plain',),
     CSV:   ('text/csv',),
+    TSV:   ('text/tab-separated-values',),
     RSS:   ('application/rss+xml',),
     RDF:   ('application/rdf+xml',),
     ATOM:  ('application/atom+xml',),
