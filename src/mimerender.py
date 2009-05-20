@@ -7,8 +7,11 @@ __author__    = 'Martin Blech <mblech@bmat.com>'
 __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
 
+import threading
 import web
 import mimeparse
+
+ctx = threading.local()
 
 XML   = 'xml'
 JSON  = 'json'
@@ -63,6 +66,12 @@ def _get_mime_types(shortname):
         return _MIME_TYPES[shortname]
     except KeyError:
         raise MimeRenderException('No known mime types for "%s"'%shortname)
+
+def _get_short_mime(mime):
+    for shortmime, mimes in _MIME_TYPES.items():
+        if mime in mimes:
+            return shortmime
+    raise MimeRenderException('No short mime for type "%s"' % mime)
 
 def _best_mime(supported, accept_string = None):
     try:
@@ -136,13 +145,20 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None, **r
             if not shortmime and override_input_key:
                 shortmime = web.input().get(override_input_key, None)
             if shortmime: mime = _get_mime_types(shortmime)[0]
-            result = target(*args, **kwargs)
             if not mime:
                 mime = _best_mime(supported)
             if mime:
                 renderer = get_renderer(mime)
             else:
                 mime, renderer = default_mime, default_renderer
+            if not shortmime: shortmime = _get_short_mime(mime)
+            ctx.shortmime = shortmime
+            ctx.mime = mime
+            ctx.renderer = renderer
+            result = target(*args, **kwargs)
+            del ctx.renderer
+            del ctx.mime
+            del ctx.shortmime
             web.header('Content-Type', mime)
             return renderer(**result)
         return wrapper
