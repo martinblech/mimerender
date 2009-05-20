@@ -26,6 +26,6 @@ setup(
     
     py_modules=['mimerender'],
     package_dir={'':'src'},
-    requires=['decorator', 'mimeparse', 'web.py'],
-    install_requires=['decorator', 'mimeparse', 'web.py'],
+    requires=['mimeparse', 'web.py'],
+    install_requires=['mimeparse', 'web.py'],
 )
