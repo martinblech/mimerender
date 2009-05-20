@@ -8,7 +8,6 @@ __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
 
 import web
-from decorator import decorator
 import mimeparse
 
 XML   = 'xml'
@@ -113,8 +112,7 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None, **r
         default_mime, default_renderer = renderers.items()[0]
     
     def wrap(target):
-        @decorator
-        def wrapper(target, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             mime = None
             shortmime = None
             if override_arg_idx != None:
@@ -131,7 +129,7 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None, **r
                 mime, renderer = default_mime, default_renderer
             web.header('Content-Type', mime)
             return renderer(**result)
-        return wrapper(target)
+        return wrapper
     
     return wrap
 
