@@ -41,7 +41,7 @@ _MIME_TYPES = {
     RSS:   ('application/rss+xml',),
     RDF:   ('application/rdf+xml',),
     ATOM:  ('application/atom+xml',),
-    M3U:   ('audio/mpegurl', 'audio/x-mpegurl',),
+    M3U:   ('application/x-winamp-playlist', 'audio/mpeg-url', 'audio/mpegurl', 'audio/x-mpegurl',),
     PLS:   ('audio/x-scpls',),
     XSPF:  ('application/xspf+xml',),
     ICAL:  ('text/calendar',),
