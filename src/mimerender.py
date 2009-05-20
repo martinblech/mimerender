@@ -2,7 +2,7 @@
 Decorator for RESTful resource variant selection in web.py.
 """
 
-__version__   = '0.2'
+__version__   = '0.2.1'
 __author__    = 'Martin Blech <mblech@bmat.com>'
 __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
@@ -41,7 +41,7 @@ _MIME_TYPES = {
     RSS:   ('application/rss+xml',),
     RDF:   ('application/rdf+xml',),
     ATOM:  ('application/atom+xml',),
-    M3U:   ('application/x-winamp-playlist', 'audio/mpeg-url', 'audio/mpegurl', 'audio/x-mpegurl',),
+    M3U:   ('audio/x-mpegurl', 'application/x-winamp-playlist', 'audio/mpeg-url', 'audio/mpegurl',),
     PLS:   ('audio/x-scpls',),
     XSPF:  ('application/xspf+xml',),
     ICAL:  ('text/calendar',),
