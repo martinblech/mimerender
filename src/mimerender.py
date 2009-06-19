@@ -85,8 +85,10 @@ def _best_mime(supported, accept_string = None):
 global_default = None
 global_override_arg_idx = None
 global_override_input_key = None
+global_charset = None
 
-def mimerender(default=None, override_arg_idx=None, override_input_key=None, **renderers):
+def mimerender(default=None, override_arg_idx=None, override_input_key=None,
+               charset=None, **renderers):
     """
     Usage:
         @mimerender(default='xml', override_arg_idx=-1, override_input_key='format', , <renderers>)
@@ -125,6 +127,7 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None, **r
     if not default: default = global_default
     if not override_arg_idx: override_arg_idx = global_override_arg_idx
     if not override_input_key: override_input_key = global_override_input_key
+    if not charset: charset = global_charset
     
     supported = list()
     renderer_dict = dict()
@@ -161,7 +164,9 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None, **r
             del ctx.renderer
             del ctx.mime
             del ctx.shortmime
-            web.header('Content-Type', mime)
+            content_type = mime
+            if charset: content_type += '; charset=%s' % charset
+            web.header('Content-Type', content_type)
             return renderer(**result)
         return wrapper
     
