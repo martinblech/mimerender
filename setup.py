@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='mimerender',
-    version='0.2.2',
+    version='0.2.3',
     description='RESTful resource variant rendering using MIME Media-Types',
     author='Martin Blech',
     author_email='mblech@bmat.com',

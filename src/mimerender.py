@@ -2,7 +2,7 @@
 Decorator for RESTful resource variant selection in web.py.
 """
 
-__version__   = '0.2.2'
+__version__   = '0.2.3'
 __author__    = 'Martin Blech <mblech@bmat.com>'
 __license__   = 'MIT'
 __copyright__ = '2009 Barcelona Music & Audio Technologies'
@@ -28,6 +28,8 @@ M3U   = 'm3u'
 PLS   = 'pls'
 XSPF  = 'xspf'
 ICAL  = 'ical'
+KML   = 'kml'
+KMZ   = 'kmz'
 
 _MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
@@ -45,6 +47,8 @@ _MIME_TYPES = {
     PLS:   ('audio/x-scpls',),
     XSPF:  ('application/xspf+xml',),
     ICAL:  ('text/calendar',),
+    KML:   ('application/vnd.google-earth.kml+xml',),
+    KMZ:   ('application/vnd.google-earth.kmz',),
 }
 
 def register_mime(shortname, mime_types):
