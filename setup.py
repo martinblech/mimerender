@@ -24,8 +24,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     
-    py_modules=['mimerender'],
+    py_modules=['mimeparse', 'mimerender'],
     package_dir={'':'src'},
-    requires=['mimeparse', 'web.py'],
-    install_requires=['mimeparse', 'web.py'],
+    requires=['web.py'],
+    install_requires=['web.py'],
 )

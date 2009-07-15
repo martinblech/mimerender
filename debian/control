@@ -1,0 +1,18 @@
+Source: python-mimerender
+Section: web
+XS-Python-Version: >=2.4, <<2.7
+Priority: extra
+Maintainer: Martin Blech <mblech@bmat.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+Build-Depends-Indep: python-dev (>= 2.4), python-central
+Homepage: http://code.google.com/p/mimerender/
+
+Package: python-mimerender
+Architecture: all
+Depends: ${python:Depends}, python-webpy (>= 0.300)
+XB-Python-Version: ${python:Versions}
+Description: Python module for RESTful resource representation using MIME Media-Types.
+ This module allows, with the use of python decorators, to transparently select
+ a render function for an HTTP request handler's result. It uses mimeparse to
+ parse the HTTP Accept header and select the best available representation.
