@@ -11,7 +11,7 @@ import threading
 import web
 import mimeparse
 
-ctx = threading.local()
+ctx = web.threadeddict()
 
 XML   = 'xml'
 JSON  = 'json'
@@ -143,7 +143,7 @@ def mimerender(default=None, override_arg_idx=None, override_input_key=None,
         default_mime = _get_mime_types(default)[0]
         default_renderer = get_renderer(default_mime)
     else:
-        default_mime, default_renderer = renderers.items()[0]
+        default_mime, default_renderer = renderer_dict.items()[0]
     
     def wrap(target):
         def wrapper(*args, **kwargs):
