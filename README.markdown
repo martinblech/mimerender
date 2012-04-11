@@ -1,8 +1,8 @@
 # mimerender: Python module for RESTful resource variant selection using the HTTP Accept header
 
-This module provides a decorator that wraps a HTTP request handler to select the correct render function for a given HTTP Accept header. It uses [mimeparse](code.google.com/p/mimeparse) to parse the accept string and select the best available representation.
+This module provides a decorator that wraps a HTTP request handler to select the correct render function for a given HTTP Accept header. It uses [mimeparse](http://code.google.com/p/mimeparse) to parse the accept string and select the best available representation.
 
-It supports [web.py](webpy.org), [Flask](flask.pocoo.org) and [Bottle](bottlepy.org) out of the box and it's easy to add support for your favourite framework, just extend the `MimeRenderBase` class.
+It supports [web.py](http://webpy.org), [Flask](http://flask.pocoo.org) and [Bottle](http://bottlepy.org) out of the box and it's easy to add support for your favourite framework, just extend the `MimeRenderBase` class.
 
 ## Example (Flask):
 
@@ -43,10 +43,10 @@ Then you can do:
 
 and get results that make sense.
 
-In the `examples` directory you will find examples for `web.py` and `Bottle` as well)
+In the `examples` directory you will find examples for web.py and Bottle as well.
 
 ## How to get it
 
-mimerender is in [PyPI](pypi.python.org/pypi/mimerender), so it's as easy as doing:
+mimerender is in [PyPI](http://pypi.python.org/pypi/mimerender), so it's as easy as doing:
 
     $ pip install mimerender
