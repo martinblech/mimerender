@@ -8,40 +8,44 @@ Support for [web.py](http://webpy.org), [Flask](http://flask.pocoo.org) and [Bot
 
 ## Example (Flask):
 
-    from flask import Flask
-    import json
-    import mimerender
+```python
+from flask import Flask
+import json
+import mimerender
 
-    mimerender = mimerender.FlaskMimeRender()
+mimerender = mimerender.FlaskMimeRender()
 
-    render_xml = lambda message: '<message>%s</message>'%message
-    render_json = lambda **args: json.dumps(args)
-    render_html = lambda message: '<html><body>%s</body></html>'%message
-    render_txt = lambda message: message
+render_xml = lambda message: '<message>%s</message>'%message
+render_json = lambda **args: json.dumps(args)
+render_html = lambda message: '<html><body>%s</body></html>'%message
+render_txt = lambda message: message
 
-    app = Flask(__name__)
+app = Flask(__name__)
 
-    @app.route('/')
-    @app.route('/<name>')
-    @mimerender(
-        default = 'html',
-        html = render_html,
-        xml  = render_xml,
-        json = render_json,
-        txt  = render_txt
-    )
-    def greet(name='world'):
-        return {'message': 'Hello, ' + name + '!'}
+@app.route('/')
+@app.route('/<name>')
+@mimerender(
+    default = 'html',
+    html = render_html,
+    xml  = render_xml,
+    json = render_json,
+    txt  = render_txt
+)
+def greet(name='world'):
+    return {'message': 'Hello, ' + name + '!'}
 
-    if __name__ == "__main__":
-        app.run(port=8080)
+if __name__ == "__main__":
+    app.run(port=8080)
+```
 
 Then you can do:
 
-    $ curl -i -H "Accept: application/html" localhost:8080/x
-    $ curl -i -H "Accept: application/xml" localhost:8080/x
-    $ curl -i -H "Accept: application/json" localhost:8080/x
-    $ curl -i -H "Accept: text/plain" localhost:8080/x
+```sh
+$ curl -i -H "Accept: application/html" localhost:8080/x
+$ curl -i -H "Accept: application/xml" localhost:8080/x
+$ curl -i -H "Accept: application/json" localhost:8080/x
+$ curl -i -H "Accept: text/plain" localhost:8080/x
+```
 
 and get results that make sense.
 
