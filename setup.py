@@ -9,7 +9,7 @@ setup(
         'HTTP Accept header',
     author='Martin Blech',
     author_email='martinblech@gmail.com',
-    url='http://code.google.com/p/mimerender/',
+    url='https://github.com/martinblech/mimerender',
     license='MIT',
     long_description="""This module provides a decorator that wraps a HTTP
     request handler to select the correct render function for a given HTTP
