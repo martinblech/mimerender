@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='mimerender',
-    version='0.2.3',
-    description='RESTful resource variant rendering using MIME Media-Types',
+    version='0.3',
+    description='RESTful resource variant selection using the '
+        'HTTP Accept header',
     author='Martin Blech',
-    author_email='mblech@bmat.com',
+    author_email='martinblech@gmail.com',
     url='http://code.google.com/p/mimerender/',
     license='MIT',
     long_description="""
-    This module allows, with the use of python decorators, to transparently select a render function for an HTTP request handler's result. It uses mimeparse to parse the HTTP Accept header and select the best available representation. Currently it only supports (web.py), but other web frameworks can be considered.
+    This module provides a decorator that allows to transparently select a
+    render function for an HTTP request handler's result. It uses mimeparse to
+    parse the HTTP Accept header and select the best available representation.
+    It supports web.py, Flask and Bottle out of the box and it's easy to add
+    support for your favourite framework, just extend MimeRenderBase.
     """,
     platforms=['all'],
     classifiers=[
@@ -24,8 +29,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     
-    py_modules=['mimeparse', 'mimerender'],
+    py_modules=['mimerender'],
     package_dir={'':'src'},
-    requires=['web.py'],
-    install_requires=['web.py'],
+    requires=['mimeparse'],
+    install_requires=['mimeparse'],
 )
