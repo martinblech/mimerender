@@ -11,13 +11,10 @@ setup(
     author_email='martinblech@gmail.com',
     url='http://code.google.com/p/mimerender/',
     license='MIT',
-    long_description="""
-    This module provides a decorator that allows to transparently select a
-    render function for an HTTP request handler's result. It uses mimeparse to
-    parse the HTTP Accept header and select the best available representation.
-    It supports web.py, Flask and Bottle out of the box and it's easy to add
-    support for your favourite framework, just extend MimeRenderBase.
-    """,
+    long_description="""This module provides a decorator that wraps a HTTP
+    request handler to select the correct render function for a given HTTP
+    Accept header. It uses mimeparse to parse the accept string and select the
+    best available representation.""",
     platforms=['all'],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -28,7 +25,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    
     py_modules=['mimerender'],
     package_dir={'':'src'},
     requires=['mimeparse'],
