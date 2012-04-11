@@ -55,4 +55,6 @@ In the `examples` directory you will find examples for web.py and Bottle as well
 
 mimerender is in [PyPI](http://pypi.python.org/pypi/mimerender), so it's as easy as doing:
 
-    $ pip install mimerender
+```sh
+$ pip install mimerender
+```
