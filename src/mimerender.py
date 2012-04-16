@@ -178,7 +178,10 @@ class MimeRenderBase(object):
                 if charset: content_type += '; charset=%s' % charset
                 content = renderer(**result)
                 return self.make_response(content, content_type)
-            return wrapper
+            if target.func_name.startswith('__') and target.func_name.endswith('__'):
+                return target
+            else:
+                return wrapper
         
         return wrap
 
