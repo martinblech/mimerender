@@ -142,7 +142,13 @@ class MimeRenderBase(object):
                 supported.append(mime)
                 renderer_dict[mime] = renderer
         if default:
-            default_mime = _get_mime_types(default)[0]
+            default_mimes = _get_mime_types(default)
+            # default mime types should be last in the supported list
+            # (which means highest priority to mimeparse)
+            for mime in reversed(default_mimes):
+                supported.remove(mime)
+                supported.append(mime)
+            default_mime = default_mimes[0]
             default_renderer = get_renderer(default_mime)
         else:
             default_mime, default_renderer = renderer_dict.items()[0]
@@ -343,5 +349,19 @@ if __name__ == "__main__":
             result = handler('c')
             self.assertEquals(mimerender.content_type, 'text/html')
             self.assertEquals(result, 'html:c')
+
+        def test_default_for_wildcard_query(self):
+            mimerender = TestMimeRender()
+            mimerender.accept_header = '*/*'
+            mimerender(
+                    default='xml',
+                    txt=lambda: None,
+                    xml=lambda: None)(lambda: {})()
+            self.assertEquals(mimerender.content_type, _MIME_TYPES['xml'][0])
+            mimerender(
+                    default='txt',
+                    txt=lambda: None,
+                    xml=lambda: None)(lambda: {})()
+            self.assertEquals(mimerender.content_type, _MIME_TYPES['txt'][0])
     
     unittest.main()
