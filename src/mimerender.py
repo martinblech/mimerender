@@ -7,6 +7,7 @@ __author__    = 'Martin Blech <martinblech@gmail.com>'
 __license__   = 'MIT'
 
 import mimeparse
+from functools import wraps
 
 # ctx = web.threadeddict()
 
@@ -14,6 +15,7 @@ class MimeRenderException(Exception): pass
 
 XML   = 'xml'
 JSON  = 'json'
+BSON  = 'bson'
 YAML  = 'yaml'
 XHTML = 'xhtml'
 HTML  = 'html'
@@ -33,6 +35,7 @@ KMZ   = 'kmz'
 _MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
     JSON:  ('application/json',),
+    BSON:  ('application/bson',),
     YAML:  ('application/x-yaml', 'text/yaml',),
     XHTML: ('application/xhtml+xml',),
     HTML:  ('text/html',),
@@ -154,6 +157,7 @@ class MimeRenderBase(object):
             default_mime, default_renderer = renderer_dict.items()[0]
         
         def wrap(target):
+            @wraps(target)
             def wrapper(*args, **kwargs):
                 mime = None
                 shortmime = None
