@@ -363,5 +363,12 @@ if __name__ == "__main__":
                     txt=lambda: None,
                     xml=lambda: None)(lambda: {})()
             self.assertEquals(mimerender.content_type, _MIME_TYPES['txt'][0])
+
+        def test_decorated_function_name(self):
+            def vanilla_function(): pass
+            mimerender = TestMimeRender()
+            decorated_function = mimerender(xml=None)(vanilla_function)
+            self.assertEquals(vanilla_function.__name__,
+                    decorated_function.__name__)
     
     unittest.main()
