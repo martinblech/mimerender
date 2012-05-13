@@ -7,6 +7,7 @@ __author__    = 'Martin Blech <martinblech@gmail.com>'
 __license__   = 'MIT'
 
 import mimeparse
+from functools import wraps
 
 # ctx = web.threadeddict()
 
@@ -156,6 +157,7 @@ class MimeRenderBase(object):
             default_mime, default_renderer = renderer_dict.items()[0]
         
         def wrap(target):
+            @wraps(target)
             def wrapper(*args, **kwargs):
                 mime = None
                 shortmime = None
