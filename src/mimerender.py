@@ -9,8 +9,6 @@ __license__   = 'MIT'
 import mimeparse
 from functools import wraps
 
-# ctx = web.threadeddict()
-
 class MimeRenderException(Exception): pass
 
 XML   = 'xml'
