@@ -275,6 +275,30 @@ try:
 except ImportError:
     pass
 
+# webapp2 implementation
+try:
+    import webapp2
+    class Webapp2MimeRender(MimeRenderBase):
+        def get_request_parameter(self, key, default=None):
+            return webapp2.get_request().get(key, default_value=default)
+
+        def get_accept_header(self, default=None):
+            return webapp2.get_request().headers.get('Accept', default)
+
+        def set_context_var(self, key, value):
+            setattr(webapp2.get_request(), key, value)
+
+        def clear_context_var(self, key):
+            delattr(webapp2.get_request(), key)
+
+        def make_response(self, content, content_type):
+            response = webapp2.get_request().response
+            response.headers['Content-Type'] = content_type
+            response.write(content)
+
+except ImportError:
+    pass
+
 # unit tests
 if __name__ == "__main__":
     try:
