@@ -184,8 +184,13 @@ class MimeRenderBase(object):
                         self.clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
+                if isinstance(result, (list, tuple)):
+                    # Split HTTP status code off.
+                    result, status_code = result
+                else:
+                    status_code = None
                 content = renderer(**result)
-                return self.make_response(content, content_type)
+                return self.make_response(content, content_type, status_code)
             return wrapper
         
         return wrap
@@ -202,7 +207,7 @@ class MimeRenderBase(object):
     def clear_context_var(self, key):
         pass
 
-    def make_response(self, content, content_type):
+    def make_response(self, content, content_type, status_code):
         return content
 
 # web.py implementation
@@ -221,7 +226,7 @@ try:
         def clear_context_var(self, key):
             del web.ctx[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status_code):
             web.header('Content-Type', content_type)
             return content
 
@@ -244,9 +249,11 @@ try:
         def clear_context_var(self, key):
             del flask.request.environ[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status_code):
             response = flask.make_response(content)
             response.headers['Content-Type'] = content_type
+            if status_code != None:
+                response.status_code = status_code
             return response
 
 except ImportError:
@@ -268,7 +275,7 @@ try:
         def clear_context_var(self, key):
             del bottle.request.environ[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status_code):
             bottle.response.content_type = content_type
             return content
 
@@ -291,7 +298,7 @@ try:
         def clear_context_var(self, key):
             delattr(webapp2.get_request(), key)
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status_code):
             response = webapp2.get_request().response
             response.headers['Content-Type'] = content_type
             response.write(content)
@@ -326,7 +333,7 @@ if __name__ == "__main__":
         def clear_context_var(self, key):
             del self.ctx[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status_code):
             self.content_type = content_type
             return content
 
