@@ -85,14 +85,17 @@ def _best_mime(supported, accept_string=None):
 class MimeRenderBase(object):
 
     def __init__(self, global_default=None, global_override_arg_idx=None,
-            global_override_input_key=None, global_charset=None):
+            global_override_input_key=None, global_charset=None,
+            global_not_acceptable_callback=None):
         self.global_default = global_default
         self.global_override_arg_idx = global_override_arg_idx
         self.global_override_input_key = global_override_input_key
         self.global_charset = global_charset
+        self.global_not_acceptable_callback = global_not_acceptable_callback
 
     def __call__(self, default=None, override_arg_idx=None,
-            override_input_key=None, charset=None, failwith406=False,
+            override_input_key=None, charset=None,
+            not_acceptable_callback=None,
             **renderers):
         """
         Usage:
@@ -133,9 +136,13 @@ class MimeRenderBase(object):
                 raise MimeRenderException('No renderer for mime "%s"'%mime)
         
         if not default: default = self.global_default
-        if not override_arg_idx: override_arg_idx = self.global_override_arg_idx
-        if not override_input_key: override_input_key = self.global_override_input_key
+        if not override_arg_idx:
+            override_arg_idx = self.global_override_arg_idx
+        if not override_input_key:
+            override_input_key = self.global_override_input_key
         if not charset: charset = self.global_charset
+        if not not_acceptable_callback:
+            not_acceptable_callback = self.global_not_acceptable_callback
         
         supported = list()
         renderer_dict = dict()
@@ -174,9 +181,10 @@ class MimeRenderBase(object):
                 if mime:
                     renderer = get_renderer(mime)
                 else:
-                    if failwith406:
-                        return self.make_response('Available Content Types: ' +
-                                ', '.join(supported), 'text/plain',
+                    if not_acceptable_callback:
+                        content_type, entity = not_acceptable_callback(
+                                accept_header, supported)
+                        return self.make_response(entity, content_type,
                                 '406 Not Acceptable')
                     else:
                         mime, renderer = default_mime, default_renderer
@@ -427,7 +435,9 @@ if __name__ == "__main__":
             self.assertEquals(result, 'json:default')
             # optional: fail with 406
             handler = mimerender(
-                    failwith406=True,
+                    not_acceptable_callback= lambda _, sup: (
+                        'text/plain',
+                        'Available Content Types: ' + ', '.join(sup)),
                     default='json',
                     xml=lambda x: 'xml:%s' %x,
                     json=lambda x: 'json:%s' %x,
