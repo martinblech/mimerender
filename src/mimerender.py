@@ -92,7 +92,8 @@ class MimeRenderBase(object):
         self.global_charset = global_charset
 
     def __call__(self, default=None, override_arg_idx=None,
-            override_input_key=None, charset=None, **renderers):
+            override_input_key=None, charset=None, failwith406=False,
+            **renderers):
         """
         Usage:
             @mimerender(default='xml', override_arg_idx=-1, override_input_key='format', , <renderers>)
@@ -100,7 +101,7 @@ class MimeRenderBase(object):
             
         The decorated function must return a dict with the objects necessary to
         render the final result to the user. The selected renderer will be 
-        called with the map contents as keyword arguments.
+        called with the dict contents as keyword arguments.
         If override_arg_idx isn't None, the wrapped function's positional
         argument at that index will be used instead of the Accept header.
         override_input_key works the same way, but with web.input().
@@ -164,12 +165,21 @@ class MimeRenderBase(object):
                 if not shortmime and override_input_key:
                     shortmime = self.get_request_parameter(override_input_key)
                 if shortmime: mime = _get_mime_types(shortmime)[0]
+                accept_header = self.get_accept_header()
                 if not mime:
-                    mime = _best_mime(supported, self.get_accept_header())
+                    if accept_header:
+                        mime = _best_mime(supported, accept_header)
+                    else:
+                        mime = default_mime
                 if mime:
                     renderer = get_renderer(mime)
                 else:
-                    mime, renderer = default_mime, default_renderer
+                    if failwith406:
+                        return self.make_response('Available Content Types: ' +
+                                ', '.join(supported), 'text/plain',
+                                '406 Not Acceptable')
+                    else:
+                        mime, renderer = default_mime, default_renderer
                 if not shortmime: shortmime = _get_short_mime(mime)
                 context_vars = dict(
                         mimerender_shortmime=shortmime,
@@ -202,7 +212,7 @@ class MimeRenderBase(object):
     def clear_context_var(self, key):
         pass
 
-    def make_response(self, content, content_type):
+    def make_response(self, content, content_type, status='200 OK'):
         return content
 
 # web.py implementation
@@ -221,7 +231,8 @@ try:
         def clear_context_var(self, key):
             del web.ctx[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status='200 OK'):
+            web.ctx.status = status
             web.header('Content-Type', content_type)
             return content
 
@@ -244,8 +255,9 @@ try:
         def clear_context_var(self, key):
             del flask.request.environ[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status='200 OK'):
             response = flask.make_response(content)
+            response.status = status
             response.headers['Content-Type'] = content_type
             return response
 
@@ -268,8 +280,9 @@ try:
         def clear_context_var(self, key):
             del bottle.request.environ[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status='200 OK'):
             bottle.response.content_type = content_type
+            bottle.response.status = status
             return content
 
 except ImportError:
@@ -291,8 +304,9 @@ try:
         def clear_context_var(self, key):
             delattr(webapp2.get_request(), key)
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status='200 OK'):
             response = webapp2.get_request().response
+            response.status = status
             response.headers['Content-Type'] = content_type
             response.write(content)
 
@@ -326,7 +340,8 @@ if __name__ == "__main__":
         def clear_context_var(self, key):
             del self.ctx[key]
 
-        def make_response(self, content, content_type):
+        def make_response(self, content, content_type, status='200 OK'):
+            self.status = status
             self.content_type = content_type
             return content
 
@@ -396,5 +411,33 @@ if __name__ == "__main__":
             decorated_function = mimerender(xml=None)(vanilla_function)
             self.assertEquals(vanilla_function.__name__,
                     decorated_function.__name__)
+
+        def test_not_acceptable(self):
+            mimerender = TestMimeRender()
+            # default behavior, pick default even if not acceptable
+            handler = mimerender(
+                    default='json',
+                    xml=lambda x: 'xml:%s' %x,
+                    json=lambda x: 'json:%s' %x,
+                    )(lambda x: dict(x=x))
+            mimerender.accept_header = 'text/plain'
+            result = handler('default')
+            self.assertEquals(mimerender.content_type, 'application/json')
+            self.assertEquals(mimerender.status, '200 OK')
+            self.assertEquals(result, 'json:default')
+            # optional: fail with 406
+            handler = mimerender(
+                    failwith406=True,
+                    default='json',
+                    xml=lambda x: 'xml:%s' %x,
+                    json=lambda x: 'json:%s' %x,
+                    )(lambda x: dict(x=x))
+            mimerender.accept_header = 'text/plain'
+            result = handler('default')
+            self.assertEquals(mimerender.content_type, 'text/plain')
+            self.assertEquals(mimerender.status, '406 Not Acceptable')
+            self.assertTrue(result.startswith('Available Content Types: '))
+            self.assertTrue(result.find('application/xml') != -1)
+            self.assertTrue(result.find('application/json') != -1)
     
     unittest.main()
