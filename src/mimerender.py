@@ -202,10 +202,32 @@ class MimeRenderBase(object):
                         self.clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
+                if isinstance(result, tuple):
+                    result, status = result
+                else:
+                    status = '200 OK'
                 content = renderer(**result)
-                return self.make_response(content, content_type)
+                return self.make_response(content, content_type, status)
             return wrapper
         
+        return wrap
+    
+    def map_exceptions(self, mapping, *args, **kwargs):
+        @self.__call__(*args, **kwargs)
+        def helper(e, status):
+            return dict(exception=e), status
+
+        def wrap(target):
+            @wraps(target)
+            def wrapper(*args, **kwargs):
+                try:
+                    return target(*args, **kwargs)
+                except BaseException as e:
+                    for klass, status in mapping:
+                        if isinstance(e, klass):
+                            return helper(e, status)
+                    raise
+            return wrapper
         return wrap
 
     def get_request_parameter(self, key, default=None):
@@ -220,7 +242,7 @@ class MimeRenderBase(object):
     def clear_context_var(self, key):
         pass
 
-    def make_response(self, content, content_type, status='200 OK'):
+    def make_response(self, content, content_type, status):
         return content
 
 # web.py implementation
@@ -239,7 +261,7 @@ try:
         def clear_context_var(self, key):
             del web.ctx[key]
 
-        def make_response(self, content, content_type, status='200 OK'):
+        def make_response(self, content, content_type, status):
             web.ctx.status = status
             web.header('Content-Type', content_type)
             return content
@@ -263,7 +285,7 @@ try:
         def clear_context_var(self, key):
             del flask.request.environ[key]
 
-        def make_response(self, content, content_type, status='200 OK'):
+        def make_response(self, content, content_type, status):
             response = flask.make_response(content)
             response.status = status
             response.headers['Content-Type'] = content_type
@@ -288,7 +310,7 @@ try:
         def clear_context_var(self, key):
             del bottle.request.environ[key]
 
-        def make_response(self, content, content_type, status='200 OK'):
+        def make_response(self, content, content_type, status):
             bottle.response.content_type = content_type
             bottle.response.status = status
             return content
@@ -312,7 +334,7 @@ try:
         def clear_context_var(self, key):
             delattr(webapp2.get_request(), key)
 
-        def make_response(self, content, content_type, status='200 OK'):
+        def make_response(self, content, content_type, status):
             response = webapp2.get_request().response
             response.status = status
             response.headers['Content-Type'] = content_type
@@ -348,7 +370,7 @@ if __name__ == "__main__":
         def clear_context_var(self, key):
             del self.ctx[key]
 
-        def make_response(self, content, content_type, status='200 OK'):
+        def make_response(self, content, content_type, status):
             self.status = status
             self.content_type = content_type
             return content
@@ -449,5 +471,65 @@ if __name__ == "__main__":
             self.assertTrue(result.startswith('Available Content Types: '))
             self.assertTrue(result.find('application/xml') != -1)
             self.assertTrue(result.find('application/json') != -1)
+
+        def test_map_exceptions(self):
+            class MyException1(Exception): pass
+            class MyException2(MyException1): pass
+            def failifnone(x, exception_class=Exception):
+                if x is None:
+                    raise exception_class('info', 'moreinfo')
+                return dict(x=x)
+            mimerender = TestMimeRender()
+            handler = mimerender.map_exceptions(
+                    mapping=((MyException2, '500 Crazy Internal Error'),
+                        (MyException1, '400 Failed')),
+                    default='txt',
+                    txt=lambda exception: 'txt:%s' % exception,
+                    xml=lambda exception: 'xml:%s' % exception,
+                    )(mimerender(
+                    default='txt',
+                    txt=lambda x: 'txt:%s' %x,
+                    xml=lambda x: 'xml:%s' % x,
+                    )(failifnone))
+
+            # no exception thrown means normal mimerender behavior
+            mimerender.accept_header = 'application/xml'
+            result = handler('a')
+            self.assertEquals(mimerender.status, '200 OK')
+            self.assertEquals(mimerender.content_type, 'application/xml')
+            self.assertEquals(result, 'xml:a')
+
+            mimerender.accept_header = 'text/plain'
+            result = handler('b')
+            self.assertEquals(mimerender.content_type, 'text/plain')
+            self.assertEquals(mimerender.status, '200 OK')
+            self.assertEquals(result, 'txt:b')
+    
+            # unmapped exception won't be caught
+            try:
+                result = handler(None, Exception)
+                self.fail('unmapped exception must not be caught')
+            except:
+                pass
+
+            # mapped exceptions are represented with an acceptable mime type
+            mimerender.accept_header = 'application/xml'
+            result = handler(None, MyException1)
+            self.assertEquals(mimerender.content_type, 'application/xml')
+            self.assertNotEquals(mimerender.status, '200 OK')
+            self.assertEquals(result, "xml:('info', 'moreinfo')")
+
+            mimerender.accept_header = 'text/plain'
+            result = handler(None, MyException1)
+            self.assertEquals(mimerender.content_type, 'text/plain')
+            self.assertNotEquals(mimerender.status, '200 OK')
+            self.assertEquals(result, "txt:('info', 'moreinfo')")
+
+            # mapping order matters over exception hierarchies
+            result = handler(None, MyException2)
+            self.assertEquals(mimerender.status, '500 Crazy Internal Error')
+
+            result = handler(None, MyException1)
+            self.assertEquals(mimerender.status, '400 Failed')
     
     unittest.main()
