@@ -51,6 +51,10 @@ and get results that make sense.
 
 In the `examples` directory you will find examples for web.py and Bottle as well.
 
+## Documentation
+
+You can read the full documentation in http://mimerender.rtfd.org
+
 ## How to get it
 
 mimerender is in [PyPI](http://pypi.python.org/pypi/mimerender), so it's as easy as doing:
