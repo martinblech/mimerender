@@ -98,7 +98,8 @@ class MimeRenderBase(object):
             not_acceptable_callback=None,
             **renderers):
         """
-        Usage:
+        Main mimerender decorator. Usage::
+
             @mimerender(default='xml', override_arg_idx=-1, override_input_key='format', , <renderers>)
             GET(self, ...) (or POST, etc.)
             
@@ -109,7 +110,7 @@ class MimeRenderBase(object):
         argument at that index will be used instead of the Accept header.
         override_input_key works the same way, but with web.input().
         
-        Example:
+        Example::
 
             @mimerender(
                 default = 'xml',
@@ -125,6 +126,7 @@ class MimeRenderBase(object):
             def greet(self, param):
                 message = 'Hello, %s!'%param
                 return {'message':message}
+
         """
         if not renderers:
             raise ValueError('need at least one renderer')
@@ -213,6 +215,11 @@ class MimeRenderBase(object):
         return wrap
     
     def map_exceptions(self, mapping, *args, **kwargs):
+        """
+        Exception mapping helper decorator. Takes the same arguments as the
+        main decorator, plus `mapping`, which is a list of 
+        `(exception_class, status_line)` pairs.
+        """
         @self.__call__(*args, **kwargs)
         def helper(e, status):
             return dict(exception=e), status
