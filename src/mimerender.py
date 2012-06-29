@@ -286,7 +286,7 @@ try:
             del flask.request.environ[key]
 
         def _make_response(self, content, content_type, status):
-            response = flask._make_response(content)
+            response = flask.make_response(content)
             response.status = status
             response.headers['Content-Type'] = content_type
             return response
