@@ -170,9 +170,9 @@ class MimeRenderBase(object):
                 if override_arg_idx != None:
                     shortmime = args[override_arg_idx]
                 if not shortmime and override_input_key:
-                    shortmime = self.get_request_parameter(override_input_key)
+                    shortmime = self._get_request_parameter(override_input_key)
                 if shortmime: mime = _get_mime_types(shortmime)[0]
-                accept_header = self.get_accept_header()
+                accept_header = self._get_accept_header()
                 if not mime:
                     if accept_header:
                         mime = _best_mime(supported, accept_header)
@@ -184,7 +184,7 @@ class MimeRenderBase(object):
                     if not_acceptable_callback:
                         content_type, entity = not_acceptable_callback(
                                 accept_header, supported)
-                        return self.make_response(entity, content_type,
+                        return self._make_response(entity, content_type,
                                 '406 Not Acceptable')
                     else:
                         mime, renderer = default_mime, default_renderer
@@ -194,12 +194,12 @@ class MimeRenderBase(object):
                         mimerender_mime=mime,
                         mimerender_renderer=renderer)
                 for key, value in context_vars.items():
-                    self.set_context_var(key, value)
+                    self._set_context_var(key, value)
                 try:
                     result = target(*args, **kwargs)
                 finally:
                     for key in context_vars.keys():
-                        self.clear_context_var(key)
+                        self._clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
                 if isinstance(result, tuple):
@@ -207,7 +207,7 @@ class MimeRenderBase(object):
                 else:
                     status = '200 OK'
                 content = renderer(**result)
-                return self.make_response(content, content_type, status)
+                return self._make_response(content, content_type, status)
             return wrapper
         
         return wrap
@@ -230,38 +230,38 @@ class MimeRenderBase(object):
             return wrapper
         return wrap
 
-    def get_request_parameter(self, key, default=None):
+    def _get_request_parameter(self, key, default=None):
         return default
 
-    def get_accept_header(self, default=None):
+    def _get_accept_header(self, default=None):
         return default
 
-    def set_context_var(self, key, value):
+    def _set_context_var(self, key, value):
         pass
 
-    def clear_context_var(self, key):
+    def _clear_context_var(self, key):
         pass
 
-    def make_response(self, content, content_type, status):
+    def _make_response(self, content, content_type, status):
         return content
 
 # web.py implementation
 try:
     import web
     class WebPyMimeRender(MimeRenderBase):
-        def get_request_parameter(self, key, default=None):
+        def _get_request_parameter(self, key, default=None):
             return web.input().get(key, default)
 
-        def get_accept_header(self, default=None):
+        def _get_accept_header(self, default=None):
             return web.ctx.env.get('HTTP_ACCEPT', default)
 
-        def set_context_var(self, key, value):
+        def _set_context_var(self, key, value):
             web.ctx[key] = value
 
-        def clear_context_var(self, key):
+        def _clear_context_var(self, key):
             del web.ctx[key]
 
-        def make_response(self, content, content_type, status):
+        def _make_response(self, content, content_type, status):
             web.ctx.status = status
             web.header('Content-Type', content_type)
             return content
@@ -273,20 +273,20 @@ except ImportError:
 try:
     import flask
     class FlaskMimeRender(MimeRenderBase):
-        def get_request_parameter(self, key, default=None):
+        def _get_request_parameter(self, key, default=None):
             return flask.request.values.get(key, default)
 
-        def get_accept_header(self, default=None):
+        def _get_accept_header(self, default=None):
             return flask.request.headers.get('Accept', default)
 
-        def set_context_var(self, key, value):
+        def _set_context_var(self, key, value):
             flask.request.environ[key] = value
 
-        def clear_context_var(self, key):
+        def _clear_context_var(self, key):
             del flask.request.environ[key]
 
-        def make_response(self, content, content_type, status):
-            response = flask.make_response(content)
+        def _make_response(self, content, content_type, status):
+            response = flask._make_response(content)
             response.status = status
             response.headers['Content-Type'] = content_type
             return response
@@ -298,19 +298,19 @@ except ImportError:
 try:
     import bottle
     class BottleMimeRender(MimeRenderBase):
-        def get_request_parameter(self, key, default=None):
+        def _get_request_parameter(self, key, default=None):
             return bottle.request.params.get(key, default)
 
-        def get_accept_header(self, default=None):
+        def _get_accept_header(self, default=None):
             return bottle.request.headers.get('Accept', default)
 
-        def set_context_var(self, key, value):
+        def _set_context_var(self, key, value):
             bottle.request.environ[key] = value
 
-        def clear_context_var(self, key):
+        def _clear_context_var(self, key):
             del bottle.request.environ[key]
 
-        def make_response(self, content, content_type, status):
+        def _make_response(self, content, content_type, status):
             bottle.response.content_type = content_type
             bottle.response.status = status
             return content
@@ -322,19 +322,19 @@ except ImportError:
 try:
     import webapp2
     class Webapp2MimeRender(MimeRenderBase):
-        def get_request_parameter(self, key, default=None):
+        def _get_request_parameter(self, key, default=None):
             return webapp2.get_request().get(key, default_value=default)
 
-        def get_accept_header(self, default=None):
+        def _get_accept_header(self, default=None):
             return webapp2.get_request().headers.get('Accept', default)
 
-        def set_context_var(self, key, value):
+        def _set_context_var(self, key, value):
             setattr(webapp2.get_request(), key, value)
 
-        def clear_context_var(self, key):
+        def _clear_context_var(self, key):
             delattr(webapp2.get_request(), key)
 
-        def make_response(self, content, content_type, status):
+        def _make_response(self, content, content_type, status):
             response = webapp2.get_request().response
             response.status = status
             response.headers['Content-Type'] = content_type
@@ -358,19 +358,19 @@ if __name__ == "__main__":
             self.accept_header = accept_header
             self.ctx = {}
 
-        def get_request_parameter(self, key, default=None):
+        def _get_request_parameter(self, key, default=None):
             return self.request_parameters.get(key, default)
 
-        def get_accept_header(self, default=None):
+        def _get_accept_header(self, default=None):
             return self.accept_header
 
-        def set_context_var(self, key, value):
+        def _set_context_var(self, key, value):
             self.ctx[key] = value
 
-        def clear_context_var(self, key):
+        def _clear_context_var(self, key):
             del self.ctx[key]
 
-        def make_response(self, content, content_type, status):
+        def _make_response(self, content, content_type, status):
             self.status = status
             self.content_type = content_type
             return content
