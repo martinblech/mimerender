@@ -49,7 +49,7 @@ $ curl -i -H "Accept: text/plain" localhost:8080/x
 
 and get results that make sense.
 
-In the `examples` directory you will find examples for web.py and Bottle as well.
+In the `examples` directory you will find examples for all the other supported frameworks.
 
 ## Documentation
 
