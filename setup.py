@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='mimerender',
-    version='0.3.2',
+    version='0.4',
     description='RESTful resource variant selection using the '
         'HTTP Accept header',
     author='Martin Blech',
