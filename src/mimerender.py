@@ -229,7 +229,7 @@ class MimeRenderBase(object):
             def wrapper(*args, **kwargs):
                 try:
                     return target(*args, **kwargs)
-                except BaseException as e:
+                except BaseException, e:
                     for klass, status in mapping:
                         if isinstance(e, klass):
                             return helper(e, status)
