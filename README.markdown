@@ -6,6 +6,10 @@ It acts as a decorator that wraps a HTTP request handler to select the correct r
 
 Support for [webapp2](http://webapp-improved.appspot.com/) ([Google App Engine](https://developers.google.com/appengine/)), [web.py](http://webpy.org), [Flask](http://flask.pocoo.org) and [Bottle](http://bottlepy.org) is available out of the box and it's easy to add support for your favourite framework, just extend the `MimeRenderBase` class.
 
+Build status at [Travis CI](http://travis-ci.org/): [![Build Status](https://secure.travis-ci.org/martinblech/mimerender.png)](http://travis-ci.org/martinblech/mimerender)
+
+You can read the full documentation at [rtfd.org](http://mimerender.rtfd.org).
+
 ## Example (Flask):
 
 ```python
@@ -50,10 +54,6 @@ $ curl -i -H "Accept: text/plain" localhost:8080/x
 and get results that make sense.
 
 In the `examples` directory you will find examples for all the other supported frameworks.
-
-## Documentation
-
-You can read the full documentation in http://mimerender.rtfd.org
 
 ## How to get it
 
