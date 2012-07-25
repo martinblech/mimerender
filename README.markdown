@@ -1,6 +1,6 @@
 # mimerender
 
-mimerender is a Python module for RESTful resource variant selection using the HTTP Accept header
+mimerender is a Python module for RESTful HTTP Content Negotiation.
 
 It acts as a decorator that wraps a HTTP request handler to select the correct render function for a given HTTP Accept header. It uses [mimeparse](http://code.google.com/p/mimeparse) to parse the accept string and select the best available representation.
 
