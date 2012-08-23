@@ -27,6 +27,6 @@ setup(
     ],
     py_modules=['mimerender'],
     package_dir={'':'src'},
-    requires=['python-mimeparse'],
-    install_requires=['python-mimeparse'],
+    requires=['mimeparse'],
+    install_requires=['mimeparse'],
 )
