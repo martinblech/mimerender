@@ -23,10 +23,10 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+	'Programming Language :: Python :: 3'
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     py_modules=['mimerender'],
     package_dir={'':'src'},
-    requires=['mimeparse'],
-    install_requires=['mimeparse'],
+    install_requires=['python_mimeparse >= 0.1.4'],
 )
