@@ -72,7 +72,7 @@ def _get_mime_types(shortname):
         raise MimeRenderException('No known mime types for "%s"'%shortname)
 
 def _get_short_mime(mime):
-    for shortmime, mimes in _MIME_TYPES.items():
+    for shortmime, mimes in list(_MIME_TYPES.items()):
         if mime in mimes:
             return shortmime
     raise MimeRenderException('No short mime for type "%s"' % mime)
@@ -148,7 +148,7 @@ class MimeRenderBase(object):
         
         supported = list()
         renderer_dict = dict()
-        for shortname, renderer in renderers.items():
+        for shortname, renderer in list(renderers.items()):
             for mime in _get_mime_types(shortname):
                 supported.append(mime)
                 renderer_dict[mime] = renderer
@@ -162,7 +162,7 @@ class MimeRenderBase(object):
             default_mime = default_mimes[0]
             default_renderer = get_renderer(default_mime)
         else:
-            default_mime, default_renderer = renderer_dict.items()[0]
+            default_mime, default_renderer = list(renderer_dict.items())[0]
         
         def wrap(target):
             @wraps(target)
@@ -195,12 +195,12 @@ class MimeRenderBase(object):
                         mimerender_shortmime=shortmime,
                         mimerender_mime=mime,
                         mimerender_renderer=renderer)
-                for key, value in context_vars.items():
+                for key, value in list(context_vars.items()):
                     self._set_context_var(key, value)
                 try:
                     result = target(*args, **kwargs)
                 finally:
-                    for key in context_vars.keys():
+                    for key in list(context_vars.keys()):
                         self._clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
@@ -229,7 +229,7 @@ class MimeRenderBase(object):
             def wrapper(*args, **kwargs):
                 try:
                     return target(*args, **kwargs)
-                except BaseException, e:
+                except BaseException as e:
                     for klass, status in mapping:
                         if isinstance(e, klass):
                             return helper(e, status)
