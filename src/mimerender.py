@@ -162,7 +162,7 @@ class MimeRenderBase(object):
             default_mime = default_mimes[0]
             default_renderer = get_renderer(default_mime)
         else:
-            default_mime, default_renderer = renderer_dict.items()[0]
+            default_mime, default_renderer = next(iter(renderer_dict.items()))
         
         def wrap(target):
             @wraps(target)
@@ -229,7 +229,7 @@ class MimeRenderBase(object):
             def wrapper(*args, **kwargs):
                 try:
                     return target(*args, **kwargs)
-                except BaseException, e:
+                except BaseException as e:
                     for klass, status in mapping:
                         if isinstance(e, klass):
                             return helper(e, status)
@@ -388,8 +388,8 @@ if __name__ == "__main__":
             result = mimerender(
                     xml=lambda x: '<xml>%s</xml>' % x
                     )(lambda: dict(x='test'))()
-            self.assertEquals(mimerender.content_type, 'text/xml')
-            self.assertEquals(result, '<xml>test</xml>')
+            self.assertEqual(mimerender.content_type, 'text/xml')
+            self.assertEqual(result, '<xml>test</xml>')
 
         def test_norenderers(self):
             try:
@@ -410,23 +410,23 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
 
             result = handler('default')
-            self.assertEquals(mimerender.content_type, 'text/plain')
-            self.assertEquals(result, 'txt:default')
+            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(result, 'txt:default')
 
             mimerender.accept_header = 'application/xml'
             result = handler('a')
-            self.assertEquals(mimerender.content_type, 'application/xml')
-            self.assertEquals(result, 'xml:a')
+            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertEqual(result, 'xml:a')
 
             mimerender.accept_header = 'application/json'
             result = handler('b')
-            self.assertEquals(mimerender.content_type, 'application/json')
-            self.assertEquals(result, 'json:b')
+            self.assertEqual(mimerender.content_type, 'application/json')
+            self.assertEqual(result, 'json:b')
 
             mimerender.request_parameters['mime'] = 'html'
             result = handler('c')
-            self.assertEquals(mimerender.content_type, 'text/html')
-            self.assertEquals(result, 'html:c')
+            self.assertEqual(mimerender.content_type, 'text/html')
+            self.assertEqual(result, 'html:c')
 
         def test_default_for_wildcard_query(self):
             mimerender = TestMimeRender()
@@ -435,18 +435,18 @@ if __name__ == "__main__":
                     default='xml',
                     txt=lambda: None,
                     xml=lambda: None)(lambda: {})()
-            self.assertEquals(mimerender.content_type, _MIME_TYPES['xml'][0])
+            self.assertEqual(mimerender.content_type, _MIME_TYPES['xml'][0])
             mimerender(
                     default='txt',
                     txt=lambda: None,
                     xml=lambda: None)(lambda: {})()
-            self.assertEquals(mimerender.content_type, _MIME_TYPES['txt'][0])
+            self.assertEqual(mimerender.content_type, _MIME_TYPES['txt'][0])
 
         def test_decorated_function_name(self):
             def vanilla_function(): pass
             mimerender = TestMimeRender()
             decorated_function = mimerender(xml=None)(vanilla_function)
-            self.assertEquals(vanilla_function.__name__,
+            self.assertEqual(vanilla_function.__name__,
                     decorated_function.__name__)
 
         def test_not_acceptable(self):
@@ -459,9 +459,9 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
             mimerender.accept_header = 'text/plain'
             result = handler('default')
-            self.assertEquals(mimerender.content_type, 'application/json')
-            self.assertEquals(mimerender.status, '200 OK')
-            self.assertEquals(result, 'json:default')
+            self.assertEqual(mimerender.content_type, 'application/json')
+            self.assertEqual(mimerender.status, '200 OK')
+            self.assertEqual(result, 'json:default')
             # optional: fail with 406
             handler = mimerender(
                     not_acceptable_callback= lambda _, sup: (
@@ -473,8 +473,8 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
             mimerender.accept_header = 'text/plain'
             result = handler('default')
-            self.assertEquals(mimerender.content_type, 'text/plain')
-            self.assertEquals(mimerender.status, '406 Not Acceptable')
+            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.status, '406 Not Acceptable')
             self.assertTrue(result.startswith('Available Content Types: '))
             self.assertTrue(result.find('application/xml') != -1)
             self.assertTrue(result.find('application/json') != -1)
@@ -502,15 +502,15 @@ if __name__ == "__main__":
             # no exception thrown means normal mimerender behavior
             mimerender.accept_header = 'application/xml'
             result = handler('a')
-            self.assertEquals(mimerender.status, '200 OK')
-            self.assertEquals(mimerender.content_type, 'application/xml')
-            self.assertEquals(result, 'xml:a')
+            self.assertEqual(mimerender.status, '200 OK')
+            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertEqual(result, 'xml:a')
 
             mimerender.accept_header = 'text/plain'
             result = handler('b')
-            self.assertEquals(mimerender.content_type, 'text/plain')
-            self.assertEquals(mimerender.status, '200 OK')
-            self.assertEquals(result, 'txt:b')
+            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.status, '200 OK')
+            self.assertEqual(result, 'txt:b')
     
             # unmapped exception won't be caught
             try:
@@ -522,21 +522,21 @@ if __name__ == "__main__":
             # mapped exceptions are represented with an acceptable mime type
             mimerender.accept_header = 'application/xml'
             result = handler(None, MyException1)
-            self.assertEquals(mimerender.content_type, 'application/xml')
-            self.assertNotEquals(mimerender.status, '200 OK')
-            self.assertEquals(result, "xml:('info', 'moreinfo')")
+            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertNotEqual(mimerender.status, '200 OK')
+            self.assertEqual(result, "xml:('info', 'moreinfo')")
 
             mimerender.accept_header = 'text/plain'
             result = handler(None, MyException1)
-            self.assertEquals(mimerender.content_type, 'text/plain')
-            self.assertNotEquals(mimerender.status, '200 OK')
-            self.assertEquals(result, "txt:('info', 'moreinfo')")
+            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertNotEqual(mimerender.status, '200 OK')
+            self.assertEqual(result, "txt:('info', 'moreinfo')")
 
             # mapping order matters over exception hierarchies
             result = handler(None, MyException2)
-            self.assertEquals(mimerender.status, '500 Crazy Internal Error')
+            self.assertEqual(mimerender.status, '500 Crazy Internal Error')
 
             result = handler(None, MyException1)
-            self.assertEquals(mimerender.status, '400 Failed')
+            self.assertEqual(mimerender.status, '400 Failed')
     
     unittest.main()
