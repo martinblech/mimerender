@@ -4,9 +4,9 @@ from setuptools import setup
 
 setup(
     name='mimerender',
-    version='0.4',
-    description='RESTful resource variant selection using the '
-        'HTTP Accept header',
+    version='0.5',
+    description='RESTful HTTP Content Negotiation for Flask, Bottle, web.py '
+        'and webapp2 (Google App Engine)',
     author='Martin Blech',
     author_email='martinblech@gmail.com',
     url='https://github.com/martinblech/mimerender',
@@ -14,10 +14,11 @@ setup(
     long_description="""This module provides a decorator that wraps a HTTP
     request handler to select the correct render function for a given HTTP
     Accept header. It uses mimeparse to parse the accept string and select the
-    best available representation.""",
+    best available representation. Supports Flask, Bottle, web.py and webapp2
+    out of the box, and it's easy to add support for other frameworks.""",
     platforms=['all'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
