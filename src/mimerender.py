@@ -8,6 +8,7 @@ __license__   = 'MIT'
 
 import mimeparse
 from functools import wraps
+import re
 
 class MimeRenderException(Exception): pass
 
@@ -81,6 +82,20 @@ def _best_mime(supported, accept_string=None):
     if accept_string is None:
         return None
     return mimeparse.best_match(supported, accept_string)
+
+VARY_SEPARATOR = re.compile(r',\s*')
+def _fix_vary_header(headers):
+    fixed_headers = []
+    found = False
+    for k, v in headers:
+        if k.lower() == 'vary':
+            found = True
+            if 'accept' not in VARY_SEPARATOR.split(v.strip().lower()):
+                v = v + ',Accept'
+        fixed_headers.append((k, v))
+    if not found:
+        fixed_headers.append(('Vary', 'Accept'))
+    return fixed_headers
 
 class MimeRenderBase(object):
 
@@ -186,8 +201,10 @@ class MimeRenderBase(object):
                     if not_acceptable_callback:
                         content_type, entity = not_acceptable_callback(
                                 accept_header, supported)
-                        return self._make_response(entity, content_type,
-                                '406 Not Acceptable')
+                        return self._make_response(entity,
+                                                   (('Content-Type',
+                                                     content_type),),
+                                                   '406 Not Acceptable')
                     else:
                         mime, renderer = default_mime, default_renderer
                 if not shortmime: shortmime = _get_short_mime(mime)
@@ -204,12 +221,30 @@ class MimeRenderBase(object):
                         self._clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
+                headers = None
+                status = None
                 if isinstance(result, tuple):
-                    result, status = result
-                else:
+                    if len(result) == 3:
+                        result, status, headers = result
+                        try:
+                            headers = headers.items()
+                        except AttributeError:
+                            pass
+                    elif len(result) == 2:
+                        result, status = result
+                    elif len(result) == 1:
+                        (result,) = result
+                    else:
+                        raise ValueError()
+                if headers is None:
+                    headers = (
+                        ('Content-Type', content_type),
+                    )
+                if status is None:
                     status = '200 OK'
                 content = renderer(**result)
-                return self._make_response(content, content_type, status)
+                headers = _fix_vary_header(headers)
+                return self._make_response(content, headers, status)
             return wrapper
         
         return wrap
@@ -249,7 +284,7 @@ class MimeRenderBase(object):
     def _clear_context_var(self, key):
         pass
 
-    def _make_response(self, content, content_type, status):
+    def _make_response(self, content, headers, status):
         return content
 
 # web.py implementation
@@ -268,9 +303,10 @@ try:
         def _clear_context_var(self, key):
             del web.ctx[key]
 
-        def _make_response(self, content, content_type, status):
+        def _make_response(self, content, headers, status):
             web.ctx.status = status
-            web.header('Content-Type', content_type)
+            for k, v in headers:
+                web.header(k, v)
             return content
 
 except ImportError:
@@ -292,10 +328,11 @@ try:
         def _clear_context_var(self, key):
             del flask.request.environ[key]
 
-        def _make_response(self, content, content_type, status):
+        def _make_response(self, content, headers, status):
             response = flask.make_response(content)
             response.status = status
-            response.headers['Content-Type'] = content_type
+            for k, v in headers:
+                response.headers[k] = v
             return response
 
 except ImportError:
@@ -317,9 +354,10 @@ try:
         def _clear_context_var(self, key):
             del bottle.request.environ[key]
 
-        def _make_response(self, content, content_type, status):
-            bottle.response.content_type = content_type
+        def _make_response(self, content, headers, status):
             bottle.response.status = status
+            for k, v in headers:
+                bottle.response.headers[k] = v
             return content
 
 except ImportError:
@@ -341,10 +379,11 @@ try:
         def _clear_context_var(self, key):
             delattr(webapp2.get_request(), key)
 
-        def _make_response(self, content, content_type, status):
+        def _make_response(self, content, headers, status):
             response = webapp2.get_request().response
             response.status = status
-            response.headers['Content-Type'] = content_type
+            for k, v in headers:
+                response.headers[k] = v
             response.write(content)
 
 except ImportError:
@@ -364,6 +403,7 @@ if __name__ == "__main__":
             self.request_parameters = request_parameters or {}
             self.accept_header = accept_header
             self.ctx = {}
+            self.headers = {}
 
         def _get_request_parameter(self, key, default=None):
             return self.request_parameters.get(key, default)
@@ -377,9 +417,10 @@ if __name__ == "__main__":
         def _clear_context_var(self, key):
             del self.ctx[key]
 
-        def _make_response(self, content, content_type, status):
+        def _make_response(self, content, headers, status):
             self.status = status
-            self.content_type = content_type
+            for k, v in headers:
+                self.headers[k] = v
             return content
 
     class MimeRenderTests(unittest.TestCase):
@@ -388,7 +429,7 @@ if __name__ == "__main__":
             result = mimerender(
                     xml=lambda x: '<xml>%s</xml>' % x
                     )(lambda: dict(x='test'))()
-            self.assertEqual(mimerender.content_type, 'text/xml')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/xml')
             self.assertEqual(result, '<xml>test</xml>')
 
         def test_norenderers(self):
@@ -410,22 +451,22 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
 
             result = handler('default')
-            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/plain')
             self.assertEqual(result, 'txt:default')
 
             mimerender.accept_header = 'application/xml'
             result = handler('a')
-            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertEqual(mimerender.headers['Content-Type'], 'application/xml')
             self.assertEqual(result, 'xml:a')
 
             mimerender.accept_header = 'application/json'
             result = handler('b')
-            self.assertEqual(mimerender.content_type, 'application/json')
+            self.assertEqual(mimerender.headers['Content-Type'], 'application/json')
             self.assertEqual(result, 'json:b')
 
             mimerender.request_parameters['mime'] = 'html'
             result = handler('c')
-            self.assertEqual(mimerender.content_type, 'text/html')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/html')
             self.assertEqual(result, 'html:c')
 
         def test_default_for_wildcard_query(self):
@@ -435,12 +476,12 @@ if __name__ == "__main__":
                     default='xml',
                     txt=lambda: None,
                     xml=lambda: None)(lambda: {})()
-            self.assertEqual(mimerender.content_type, _MIME_TYPES['xml'][0])
+            self.assertEqual(mimerender.headers['Content-Type'], _MIME_TYPES['xml'][0])
             mimerender(
                     default='txt',
                     txt=lambda: None,
                     xml=lambda: None)(lambda: {})()
-            self.assertEqual(mimerender.content_type, _MIME_TYPES['txt'][0])
+            self.assertEqual(mimerender.headers['Content-Type'], _MIME_TYPES['txt'][0])
 
         def test_decorated_function_name(self):
             def vanilla_function(): pass
@@ -459,7 +500,7 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
             mimerender.accept_header = 'text/plain'
             result = handler('default')
-            self.assertEqual(mimerender.content_type, 'application/json')
+            self.assertEqual(mimerender.headers['Content-Type'], 'application/json')
             self.assertEqual(mimerender.status, '200 OK')
             self.assertEqual(result, 'json:default')
             # optional: fail with 406
@@ -473,7 +514,7 @@ if __name__ == "__main__":
                     )(lambda x: dict(x=x))
             mimerender.accept_header = 'text/plain'
             result = handler('default')
-            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/plain')
             self.assertEqual(mimerender.status, '406 Not Acceptable')
             self.assertTrue(result.startswith('Available Content Types: '))
             self.assertTrue(result.find('application/xml') != -1)
@@ -503,12 +544,12 @@ if __name__ == "__main__":
             mimerender.accept_header = 'application/xml'
             result = handler('a')
             self.assertEqual(mimerender.status, '200 OK')
-            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertEqual(mimerender.headers['Content-Type'], 'application/xml')
             self.assertEqual(result, 'xml:a')
 
             mimerender.accept_header = 'text/plain'
             result = handler('b')
-            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/plain')
             self.assertEqual(mimerender.status, '200 OK')
             self.assertEqual(result, 'txt:b')
     
@@ -522,13 +563,13 @@ if __name__ == "__main__":
             # mapped exceptions are represented with an acceptable mime type
             mimerender.accept_header = 'application/xml'
             result = handler(None, MyException1)
-            self.assertEqual(mimerender.content_type, 'application/xml')
+            self.assertEqual(mimerender.headers['Content-Type'], 'application/xml')
             self.assertNotEqual(mimerender.status, '200 OK')
             self.assertEqual(result, "xml:('info', 'moreinfo')")
 
             mimerender.accept_header = 'text/plain'
             result = handler(None, MyException1)
-            self.assertEqual(mimerender.content_type, 'text/plain')
+            self.assertEqual(mimerender.headers['Content-Type'], 'text/plain')
             self.assertNotEqual(mimerender.status, '200 OK')
             self.assertEqual(result, "txt:('info', 'moreinfo')")
 
@@ -538,5 +579,40 @@ if __name__ == "__main__":
 
             result = handler(None, MyException1)
             self.assertEqual(mimerender.status, '400 Failed')
+
+        def test_vary_header(self):
+            mimerender = TestMimeRender()
+            # add vary header if absent
+            mimerender(xml=lambda: None)(lambda: {})()
+            self.assertEqual(mimerender.headers['Vary'], 'Accept')
+            # leave vary header untouched if accept is already there
+            mimerender(xml=lambda: None)(
+                lambda: ({}, '', (('Vary', 'Accept,X'),)))()
+            self.assertEqual(mimerender.headers['Vary'], 'Accept,X')
+            # append accept if vary header is incomplete
+            mimerender(xml=lambda: None)(
+                lambda: ({}, '', (('Vary', 'X'),)))()
+            self.assertEqual(mimerender.headers['Vary'], 'X,Accept')
+
+        def test_response_types(self):
+            mimerender = TestMimeRender()
+            # dict only
+            mimerender(xml=lambda: None)(lambda: {})()
+            self.assertEqual(mimerender.status, '200 OK')
+            self.assertEqual(mimerender.headers, {'Vary': 'Accept',
+                                                  'Content-Type': 'text/xml'})
+            # dict + status
+            mimerender(xml=lambda: None)(lambda: ({}, '666 Armaggedon'))()
+            self.assertEqual(mimerender.status, '666 Armaggedon')
+            self.assertEqual(mimerender.headers, {'Vary': 'Accept',
+                                                  'Content-Type': 'text/xml'})
+            # dict + status + headers
+            mimerender(xml=lambda: None)(lambda: ({}, '666 Armaggedon',
+                                                  {'X-Y': 'Z'}))()
+            self.assertEqual(mimerender.status, '666 Armaggedon')
+            self.assertEqual(mimerender.headers, {'Vary': 'Accept',
+                                                  'Content-Type': 'text/xml',
+                                                  'X-Y': 'Z'})
+
     
     unittest.main()
