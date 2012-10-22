@@ -2,7 +2,7 @@
 RESTful resource variant selection using the HTTP Accept header.
 """
 
-__version__   = '0.5'
+__version__   = '0.5.1'
 __author__    = 'Martin Blech <martinblech@gmail.com>'
 __license__   = 'MIT'
 
@@ -84,17 +84,22 @@ def _best_mime(supported, accept_string=None):
     return mimeparse.best_match(supported, accept_string)
 
 VARY_SEPARATOR = re.compile(r',\s*')
-def _fix_vary_header(headers):
+def _fix_headers(headers, content_type):
     fixed_headers = []
-    found = False
+    found_vary = False
+    found_content_type = False
     for k, v in headers:
         if k.lower() == 'vary':
-            found = True
+            found_vary = True
             if 'accept' not in VARY_SEPARATOR.split(v.strip().lower()):
                 v = v + ',Accept'
+        if k.lower() == 'content-type':
+            found_content_type = True
         fixed_headers.append((k, v))
-    if not found:
+    if not found_vary:
         fixed_headers.append(('Vary', 'Accept'))
+    if not found_content_type:
+        fixed_headers.append(('Content-Type', content_type))
     return fixed_headers
 
 class MimeRenderBase(object):
@@ -221,8 +226,8 @@ class MimeRenderBase(object):
                         self._clear_context_var(key)
                 content_type = mime
                 if charset: content_type += '; charset=%s' % charset
-                headers = None
-                status = None
+                headers = ()
+                status = '200 OK'
                 if isinstance(result, tuple):
                     if len(result) == 3:
                         result, status, headers = result
@@ -236,14 +241,8 @@ class MimeRenderBase(object):
                         (result,) = result
                     else:
                         raise ValueError()
-                if headers is None:
-                    headers = (
-                        ('Content-Type', content_type),
-                    )
-                if status is None:
-                    status = '200 OK'
                 content = renderer(**result)
-                headers = _fix_vary_header(headers)
+                headers = _fix_headers(headers, content_type)
                 return self._make_response(content, headers, status)
             return wrapper
         
