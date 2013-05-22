@@ -330,11 +330,7 @@ try:
             del flask.request.environ[key]
 
         def _make_response(self, content, headers, status):
-            response = flask.make_response(content)
-            response.status = status
-            for k, v in headers:
-                response.headers[k] = v
-            return response
+            return flask.make_response(content, status, headers)
 
 except ImportError:
     pass
