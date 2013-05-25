@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='mimerender',
-    version='0.5.2',
+    version='0.5.3',
     description='RESTful HTTP Content Negotiation for Flask, Bottle, web.py '
         'and webapp2 (Google App Engine)',
     author='Martin Blech',
