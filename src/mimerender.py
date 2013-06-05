@@ -386,6 +386,58 @@ try:
 except ImportError:
     pass
 
+# WSGI Implementation
+class WSGIMimeRender(object):
+    
+    def __init__(self, *args, **kwargs):
+        self.mime_render_args = args
+        self.mime_render_kwargs = kwargs
+    
+    def __call__(self, **kwargs):
+        def wrap(target):
+            @wraps(target)
+            def wrapper(environ, start_response):
+                
+                # This class is what is similar to other implementations above.
+                # The other frameworks have module-global access to request information.
+                # For WSGI, it needs to be in here because this is where we have access to
+                # start_response and environ
+                class InnerMimeRender(MimeRenderBase):
+                    def _get_request_parameter(self, key, default=None):
+                        return environ.get(key, default)
+                    
+                    def _get_accept_header(self, default=None):
+                        return environ.get('HTTP_ACCEPT', default)
+                    
+                    def _set_context_var(self, key, value):
+                        environ[key] = value
+                    
+                    def _clear_context_var(self, key):
+                        del environ[key]
+                    
+                    def _make_response(self, content, headers, status):
+                        start_response(status, headers)
+                        return content
+                
+                # call the original target with a bogus start_response that intercepts the status and headers
+                # the actual call to start_response will be done above in _make_response
+                result = target(environ, self.intercept_start_response)
+                
+                # we now the content, status, and headers as separate Python objects
+                # MimeRenderBase expects a callable that returns these 3 as a tuple
+                x = lambda: (result, self.wsgi_status, self.wsgi_headers)
+                
+                # decorate and invoke our callable, x, with an instance of InnerMimeRender and return the result
+                return InnerMimeRender(*self.mime_render_args, **self.mime_render_kwargs)(**kwargs)(x)()
+                
+            return wrapper
+        
+        return wrap
+    
+    def intercept_start_response(self, status, headers):
+        self.wsgi_status  = status
+        self.wsgi_headers = headers
+
 # unit tests
 if __name__ == "__main__":
     try:
