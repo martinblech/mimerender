@@ -189,6 +189,8 @@ class MimeRenderBase(object):
         def wrap(target):
             @wraps(target)
             def wrapper(*args, **kwargs):
+                self.target_args   = args
+                self.target_kwargs = kwargs
                 mime = None
                 shortmime = None
                 if override_arg_idx != None:
@@ -385,6 +387,58 @@ try:
 
 except ImportError:
     pass
+
+def wsgi_wrap(app):
+    '''
+    Wraps a standard wsgi application e.g.:
+        def app(environ, start_response)
+    It intercepts the start_response callback and grabs the results from it
+    so it can return the status, headers, and body as a tuple
+    '''
+    @wraps(app)
+    def wrapped(environ, start_response):
+        status_headers = [None, None]
+        def _start_response(status, headers):
+            status_headers[:] = [status, headers]
+        body = app(environ, _start_response)
+        ret = body, status_headers[0], status_headers[1]
+        return ret
+    return wrapped
+
+class _WSGIMimeRender(MimeRenderBase):
+    def _get_request_parameter(self, key, default=None):
+        environ, start_response = self.target_args
+        return environ.get(key, default)
+
+    def _get_accept_header(self, default=None):
+        environ, start_response = self.target_args
+        return environ.get('HTTP_ACCEPT', default)
+
+    def _set_context_var(self, key, value):
+        environ, start_response = self.target_args
+        environ[key] = value
+
+    def _clear_context_var(self, key):
+        environ, start_response = self.target_args
+        del environ[key]
+
+    def _make_response(self, content, headers, status):
+        environ, start_response = self.target_args
+        start_response(status, headers)
+        return content
+
+
+def WSGIMimeRender(*args, **kwargs):
+    '''
+    A wrapper for _WSGIMimeRender that wrapps the
+    inner callable with wsgi_wrap first.
+    '''
+    def wrapper(*args2, **kwargs2):
+        # take the function
+        def wrapped(f):
+            return _WSGIMimeRender(*args, **kwargs)(*args2, **kwargs2)(wsgi_wrap(f))
+        return wrapped
+    return wrapper
 
 # unit tests
 if __name__ == "__main__":
