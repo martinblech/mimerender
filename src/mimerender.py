@@ -248,6 +248,11 @@ class MimeRenderBase(object):
                 content = renderer(**result)
                 headers = _fix_headers(headers, content_type)
                 return self._make_response(content, headers, status)
+            if hasattr(wrapper, '__wrapped__'):
+                # Workaround for new @wraps behavior in Python 3.4.
+                # Prevents `TypeError: () got an unexpected keyword argument`
+                # as reported in issue #25
+                del wrapper.__wrapped__
             return wrapper
         
         return wrap
