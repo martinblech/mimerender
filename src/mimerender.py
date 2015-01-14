@@ -14,6 +14,7 @@ class MimeRenderException(Exception): pass
 
 XML   = 'xml'
 JSON  = 'json'
+JSONLD = 'jsonld'
 JSONP = 'jsonp'
 BSON  = 'bson'
 YAML  = 'yaml'
@@ -35,6 +36,7 @@ KMZ   = 'kmz'
 _MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
     JSON:  ('application/json',),
+    JSONLD: ('application/ld+json',),
     JSONP: ('application/javascript',),
     BSON:  ('application/bson',),
     YAML:  ('application/x-yaml', 'text/yaml',),
