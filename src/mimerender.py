@@ -2,7 +2,7 @@
 RESTful resource variant selection using the HTTP Accept header.
 """
 
-__version__   = '0.5.4'
+__version__   = '0.5.5'
 __author__    = 'Martin Blech <martinblech@gmail.com>'
 __license__   = 'MIT'
 
