@@ -32,6 +32,7 @@ XSPF  = 'xspf'
 ICAL  = 'ical'
 KML   = 'kml'
 KMZ   = 'kmz'
+MSGPACK = 'msgpack'
 
 _MIME_TYPES = {
     XML:   ('application/xml', 'text/xml', 'application/x-xml',),
@@ -54,6 +55,7 @@ _MIME_TYPES = {
     ICAL:  ('text/calendar',),
     KML:   ('application/vnd.google-earth.kml+xml',),
     KMZ:   ('application/vnd.google-earth.kmz',),
+    MSGPACK: ('application/x-msgpack',),
 }
 
 def register_mime(shortname, mime_types):
