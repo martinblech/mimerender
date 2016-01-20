@@ -10,6 +10,8 @@ Build status at [Travis CI](http://travis-ci.org/): [![Build Status](https://sec
 
 You can read the full documentation at [rtfd.org](http://mimerender.rtfd.org).
 
+mimerender is released under the MIT License. A copy is included as `LICENSE`.
+
 ## Example (Flask):
 
 ```python
