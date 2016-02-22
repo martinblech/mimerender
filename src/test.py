@@ -41,8 +41,8 @@ class MimeRenderTests(unittest.TestCase):
     def test_single_variant(self):
         mimerender = TestMimeRender()
         result = mimerender(
-                xml=lambda x: '<xml>%s</xml>' % x
-                )(lambda: dict(x='test'))()
+                xml=lambda x: '<xml>%s</xml>' % x,
+            )(lambda: dict(x='test'))()
         self.assertEqual(mimerender.headers['Content-Type'], 'text/xml')
         self.assertEqual(result, '<xml>test</xml>')
 

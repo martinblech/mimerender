@@ -34,8 +34,11 @@ KML   = 'kml'
 KMZ   = 'kmz'
 MSGPACK = 'msgpack'
 
+# Map of mime categories to specific mime types. The first mime type in each
+# category's tuple is the default one (e.g. the default for XML is
+# application/xml).
 _MIME_TYPES = {
-    XML:   ('application/xml', 'text/xml', 'application/x-xml',),
+    XML:   ('text/xml', 'application/xml', 'application/x-xml'),
     JSON:  ('application/json',),
     JSONLD: ('application/ld+json',),
     JSONP: ('application/javascript',),
@@ -188,7 +191,11 @@ class MimeRenderBase(object):
             default_mime = default_mimes[0]
             default_renderer = get_renderer(default_mime)
         else:
-            default_mime, default_renderer = next(iter(renderer_dict.items()))
+            # pick the first mime category from the `renderers` dict (note:
+            # this is only deterministic if len(`renderers`) == 1) and the
+            # default mime type/renderer for a given mime category.
+            default_mime = _get_mime_types(next(iter(renderers.keys())))[0]
+            default_renderer = renderer_dict[default_mime]
 
         def wrap(target):
             @wraps(target)
