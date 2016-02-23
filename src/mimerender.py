@@ -35,8 +35,7 @@ KMZ   = 'kmz'
 MSGPACK = 'msgpack'
 
 # Map of mime categories to specific mime types. The first mime type in each
-# category's tuple is the default one (e.g. the default for XML is
-# application/xml).
+# category's tuple is the default one (e.g. the default for XML is text/xml).
 _MIME_TYPES = {
     XML:   ('text/xml', 'application/xml', 'application/x-xml'),
     JSON:  ('application/json',),
