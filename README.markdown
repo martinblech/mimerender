@@ -15,22 +15,21 @@ mimerender is released under the MIT License. A copy is included as `LICENSE`.
 ## Example (Flask):
 
 ```python
-from flask import Flask
-import json
+from flask import Flask, json
 import mimerender
 
-mimerender = mimerender.FlaskMimeRender()
+negotiate = mimerender.FlaskMimeRender()
 
-render_xml = lambda message: '<message>%s</message>'%message
+render_xml = lambda message: '<message>%s</message>' % message
 render_json = lambda **args: json.dumps(args)
-render_html = lambda message: '<html><body>%s</body></html>'%message
+render_html = lambda message: '<html><body>%s</body></html>' % message
 render_txt = lambda message: message
 
 app = Flask(__name__)
 
 @app.route('/')
 @app.route('/<name>')
-@mimerender(
+@negotiate(
     default = 'html',
     html = render_html,
     xml  = render_xml,
@@ -56,6 +55,37 @@ $ curl -i -H "Accept: text/plain" localhost:8080/x
 and get results that make sense.
 
 In the `examples` directory you will find examples for all the other supported frameworks.
+
+## Adding new mimetypes
+
+Adding new mimetypes is easy!
+
+```python
+from flask import Flask, json
+import mimerender
+
+mimerender.register_mime('vnd_company_xml', ('application/xml', 'application/vnd.company+xml', 'application/company+xml'))
+mimerender.register_mime('vnd_company_json', ('application/json', 'application/vnd.company+json', 'application/company+json'))
+negotiate = mimerender.FlaskMimeRender()
+
+render_xml = lambda message: '<message>%s</message>' % message
+render_json = lambda **args: json.dumps(args)
+
+app = Flask(__name__)
+
+@app.route('/')
+@app.route('/<name>')
+@negotiate(
+    default = 'json',
+    vnd_company_json = render_json,
+    vnd_company_xml = render_xml,
+)
+def greet(name='world'):
+    return {'message': 'Hello, ' + name + '!'}
+
+if __name__ == "__main__":
+    app.run(port=8080)
+```
 
 ## How to get it
 
