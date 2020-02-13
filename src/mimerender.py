@@ -207,7 +207,11 @@ class MimeRenderBase(object):
                     shortmime = args[override_arg_idx]
                 if not shortmime and override_input_key:
                     shortmime = self._get_request_parameter(override_input_key)
-                if shortmime: mime = _get_mime_types(shortmime)[0]
+                if shortmime:
+                    try:
+                        mime = _get_mime_types(shortmime)[0]
+                    except MimeRenderException as e:
+                        return self._make_response(str(e), (('Content-Type', 'text/plain'),), '400 Bad Request')
                 accept_header = self._get_accept_header()
                 if not mime:
                     if accept_header:
