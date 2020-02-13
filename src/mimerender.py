@@ -345,7 +345,9 @@ try:
     import flask
     class FlaskMimeRender(MimeRenderBase):
         def _get_request_parameter(self, key, default=None):
-            return flask.request.values.get(key, default)
+            return flask.request.values.get(
+                key, flask.request.view_args.get(key, default)
+            )
 
         def _get_accept_header(self, default=None):
             return flask.request.headers.get('Accept', default)
