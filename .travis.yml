@@ -1,8 +1,11 @@
+arch:
+  - amd64
+  - ppc64le
 language: python
 python:
   - "2.7"
-  - "3.2"
   - "3.4"
+  - "3.8"
   - "pypy"
 install:
   - python setup.py install
