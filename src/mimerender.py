@@ -457,7 +457,7 @@ class _WSGIMimeRender(MimeRenderBase):
 
 def WSGIMimeRender(*args, **kwargs):
     '''
-    A wrapper for _WSGIMimeRender that wrapps the
+    A wrapper for _WSGIMimeRender that wraps the
     inner callable with wsgi_wrap first.
     '''
     def wrapper(*args2, **kwargs2):
