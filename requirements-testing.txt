@@ -1,0 +1,6 @@
+pytest==6.2.4
+pytest-cov==2.12.1
+pycodestyle==2.7.0
+flake8==3.9.2
+mypy==0.910
+mypy-extensions==0.4.3
