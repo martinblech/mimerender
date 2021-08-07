@@ -10,6 +10,8 @@ from mimerender import _MIME_TYPES
 
 
 class TestMimeRender(mimerender.MimeRenderBase):
+    __test__ = False
+
     def __init__(self, request_parameters=None, accept_header=None, *args, **kwargs):
         super(TestMimeRender, self).__init__(*args, **kwargs)
         self.request_parameters = request_parameters or {}
