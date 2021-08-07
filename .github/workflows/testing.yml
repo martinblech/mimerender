@@ -60,7 +60,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install -e .
-        pytest
+        pytest src/test.py
 
   auto-gen-release:
     needs:
