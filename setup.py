@@ -10,6 +10,8 @@ setup(
     "and webapp2 (Google App Engine)",
     author="Martin Blech",
     author_email="martinblech@gmail.com",
+    maintainer="Patrick Huck",
+    maintainer_email="phuck@lbl.gov",
     url="https://github.com/martinblech/mimerender",
     license="MIT",
     long_description="""Fork for https://github.com/martinblech/mimerender/pull/36.
