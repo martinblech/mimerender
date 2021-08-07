@@ -30,7 +30,7 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_clean -k
 	dh_installdirs
 	python setup.py install \
 		--root=$(CURDIR)/debian/python-mimerender
